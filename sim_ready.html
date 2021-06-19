@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tracker</title>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
+    integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+    crossorigin=""
+  	/>
+    
+  	<script
+    src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
+    integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
+    crossorigin=""
+  	></script>
+</head>
+<body>
+    <center><h2>GPS Tracker for Alzeimer's disease</h2></center>
+
+    <div id="map" style="height: 380px"></div>
+    <center><p>Last Updated</p></center>
+    <center><p id="last_update">Unknown</p></center>
+</body>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script>
+    /////////////Ajax Requests////////////
+    $(document).ready(function() {
+        // Fetch the initial Map
+        refreshMap();
+    
+        // Fetch every 5 second
+        setInterval(refreshMap, 60000);
+    });
+
+    function refreshMap(){
+        var container = L.DomUtil.get('map');
+
+      	if(container != null){
+        container._leaflet_id = null;
+        }
+         
+        var map = L.map('map').setView([20.5937, 78.9629], 4);
+        var jsonDataObject =[];
+
+        $.getJSON('https://spreadsheets.google.com/feeds/list/1iJQxNjx_90y5rtQpHkiZznppakCjSEFJ6EqUhkTye5A/1/public/full?alt=json', function(data) {
+        for (var i = 0; i < data.feed.entry.length; ++i) {
+            var json_data = {
+                "Timestamp":data.feed.entry[i].gsx$timestamp.$t,
+                "Latitude": parseFloat(data.feed.entry[i].gsx$latitude.$t),
+                "Longitude": parseFloat(data.feed.entry[i].gsx$longitude.$t)
+            };
+            jsonDataObject.push(json_data);
+            document.getElementById("last_update").innerHTML = String(json_data.Timestamp);
+            var redIcon = new L.Icon({
+              iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+              shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+              iconSize: [25, 41],
+              iconAnchor: [12, 41],
+              popupAnchor: [1, -34],
+              shadowSize: [41, 41]
+            });
+            //jsonDataObject.push(redIcon);
+
+            var greenIcon = new L.Icon({
+              iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+              shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+              iconSize: [25, 41],
+              iconAnchor: [12, 41],
+              popupAnchor: [1, -34],
+              shadowSize: [41, 41]
+            }); 
+            // jsonDataObject.push(greenIcon);
+            var yellowIcon = new L.Icon({
+              iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-yellow.png',
+              shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+              iconSize: [25, 41],
+              iconAnchor: [12, 41],
+              popupAnchor: [1, -34],
+              shadowSize: [41, 41]
+            });
+            //jsonDataObject.push(yellowIcon);
+        }
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo(map); 
+        Icon=redIcon;
+        var marker = L.marker(L.latLng(parseFloat(jsonDataObject[jsonDataObject.length-1].Latitude), parseFloat(jsonDataObject[jsonDataObject.length-1].Longitude)),{icon:Icon});
+        // marker.bindPopup(jsonDataObject[j].City, {
+
+        //         autoClose: false
+        // });             
+        map.addLayer(marker);
+        marker.on('click', onClick_Marker)
+        // Attach the corresponding JSON data to your marker:
+        marker.myJsonData =jsonDataObject[jsonDataObject.length-1];
+        function onClick_Marker(e) {
+                var marker = e.target;
+                popup = L.popup()
+                .setLatLng(marker.getLatLng())
+                .setContent("Latitude: " + marker.myJsonData.Latitude +" || Latitude: " + marker.myJsonData.Longitude )
+                .openOn(map);
+            }
+        });
+    }
+    
+</script>
