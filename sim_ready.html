@@ -102,7 +102,7 @@
                 var marker = e.target;
                 popup = L.popup()
                 .setLatLng(marker.getLatLng())
-                .setContent("Latitude: " + marker.myJsonData.Latitude +" || Latitude: " + marker.myJsonData.Longitude )
+                .setContent("Latitude: " + marker.myJsonData.Latitude +" || Longitude: " + marker.myJsonData.Longitude )
                 .openOn(map);
             }
         });
